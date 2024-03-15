@@ -10,7 +10,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.env.Environment;
 
 @SpringBootApplication
-@ComponentScan("com.auth")
+@ComponentScan("com.auth.*")
 public class DemoApplication {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DemoApplication.class);

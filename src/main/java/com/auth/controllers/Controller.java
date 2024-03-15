@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.auth.annotations.AdminOnly;
 import com.auth.demo.DemoApplication;
 
 @RestController
