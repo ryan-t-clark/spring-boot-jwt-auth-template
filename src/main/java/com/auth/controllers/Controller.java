@@ -17,6 +17,7 @@ public class Controller {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DemoApplication.class);
 	
+	@AdminOnly
 	@GetMapping("/")
 	public ResponseEntity<String> index() {
 		LOG.info("Route '/' reached");

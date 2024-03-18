@@ -11,6 +11,9 @@ import com.auth.interceptors.AuthInterceptor;
 @EnableWebMvc
 public class InterceptorConfig implements WebMvcConfigurer {
 
+	/**
+	 * Register the AuthInterceptor, see AuthInterceptor.java
+	 */
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(new AuthInterceptor()).addPathPatterns("/**");

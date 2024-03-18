@@ -1,6 +1,13 @@
 package com.auth.interceptors;
 
+/**
+ * Intercepts HTTP requests and checks if the route it is attempting to call has
+ * the AdminOnly annotation. If it does, checks the role of the requesting user 
+ * and allows or blocks the call to the route
+ */
+
 import java.lang.reflect.Method;
+import java.util.Enumeration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +46,14 @@ public class AuthInterceptor implements HandlerInterceptor {
             if (method.isAnnotationPresent(AdminOnly.class)) {
             	
             	LOG.info("user is trying to access an admin only route");
+            
             }
+            
+        	Enumeration<String> headers = request.getHeaderNames();
+        	while (headers.hasMoreElements()) {
+        		LOG.info(headers.nextElement());
+        	}
+            
         }
 		
         return true; //allow the request to continue

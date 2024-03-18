@@ -1,16 +1,23 @@
 package com.auth.config;
 
+/**
+ * Class containing utilities for using JWT
+ */
+
 import java.util.Date;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.auth.demo.DemoApplication;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
+@Component
 public class JWTUtil {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(DemoApplication.class);
@@ -49,6 +56,49 @@ public class JWTUtil {
             .parseClaimsJws(token)
             .getBody()
             .getSubject();
+    }
+    
+    
+    public boolean validate(String token) {
+    	
+    	// TODO -- how to validate token?
+    	
+    	
+    	return true;
+    }
+    
+    
+    
+    /**
+     * Get all claims from a given jwt token
+     * @param token
+     * @return
+     */
+    public static Claims getClaims(String token) {
+    	Claims claims = Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token).getBody();
+    	return claims;
+    }
+    
+    
+    /**
+     * Get an id from a token
+     * @param token
+     * @return
+     */
+    public static String getIdFromToken(String token) {
+    	Claims claims = getClaims(token);
+    	return (String) claims.get("id");
+    }
+    
+    
+    /**
+     * Get the role from a token
+     * @param token
+     * @return
+     */
+    public static String getRoleFromToken(String token) {
+    	Claims claims = getClaims(token);
+    	return (String) claims.get("role");
     }
 	
 }

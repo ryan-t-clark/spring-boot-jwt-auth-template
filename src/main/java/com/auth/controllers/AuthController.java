@@ -84,6 +84,7 @@ public class AuthController {
     		claims.put("id", 	user.getId());
     		claims.put("role", 	user.getRole());
     		
+    		
     		//generate the token
     		final String token = JWTUtil.generateToken(claims, request.getUsername());
     		

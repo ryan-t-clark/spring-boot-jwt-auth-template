@@ -9,14 +9,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
-import com.auth.demo.DemoApplication;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(jsr250Enabled = true)
 public class WebSecurityConfig {
 
-	private static final Logger LOG = LoggerFactory.getLogger(DemoApplication.class);
+	private static final Logger LOG = LoggerFactory.getLogger(WebSecurityConfig.class);
 	
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
