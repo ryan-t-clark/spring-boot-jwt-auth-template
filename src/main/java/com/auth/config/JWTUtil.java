@@ -59,12 +59,27 @@ public class JWTUtil {
     }
     
     
+    
+    /**
+     * Validates a JWT token by seeing if it can be parsed with the secret key
+     * @param token
+     * @return
+     * @throws Exception
+     */
     public boolean validate(String token) {
     	
-    	// TODO -- how to validate token?
+    	try {
+    		Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token);   
+    		return true;
+    	} catch (Exception e) {
+    		//
+    		// TODO -- better error handling, propagate error out
+    		//
+    		LOG.error(e.toString());
+    		return false;
+    	}
     	
     	
-    	return true;
     }
     
     
