@@ -1,4 +1,4 @@
-package com.auth.config;
+package com.auth.config.jwt;
 
 /**
  * Class containing utilities for using JWT
@@ -11,16 +11,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.auth.demo.DemoApplication;
-
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.SignatureException;
 
 @Component
 public class JWTUtil {
 	
-	private static final Logger LOG = LoggerFactory.getLogger(DemoApplication.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JWTUtil.class);
 	
 	private static final String SECRET = "your-secret-key";
     
@@ -43,55 +43,65 @@ public class JWTUtil {
             .signWith(SignatureAlgorithm.HS512, SECRET)
             .compact();
     }
-    
-    
-    /**
-     * Extracts the username from the provided JWT token
-     * @param token
-     * @return
-     */
-    public static String extractUsername(String token) {
-        return Jwts.parser()
-            .setSigningKey(SECRET)
-            .parseClaimsJws(token)
-            .getBody()
-            .getSubject();
-    }
-    
-    
-    
-    /**
-     * Validates a JWT token by seeing if it can be parsed with the secret key
-     * @param token
-     * @return
-     * @throws Exception
-     */
-    public boolean validate(String token) {
-    	
-    	try {
-    		Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token);   
-    		return true;
-    	} catch (Exception e) {
-    		//
-    		// TODO -- better error handling, propagate error out
-    		//
-    		LOG.error(e.toString());
-    		return false;
-    	}
-    	
-    	
-    }
-    
-    
+        
     
     /**
      * Get all claims from a given jwt token
      * @param token
      * @return
      */
-    public static Claims getClaims(String token) {
-    	Claims claims = Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token).getBody();
+    public static Claims getClaims(String token) throws SignatureException, ExpiredJwtException {
+    	//this call verifies the signature of the token based on the secret key
+    	//tampered with tokens would be detected here
+    	Claims claims = Jwts.parser()
+    			.setSigningKey(SECRET)
+    			.parseClaimsJws(token)
+    			.getBody();
     	return claims;
+    }
+    
+    
+    /**
+     * Validates a given token
+     * @param token
+     * @return
+     */
+    public static boolean validateToken(String token) {
+    	final String username = getUsernameFromToken(token); 
+    	
+    	//
+    	// TODO -- also need to do verification that this username is valid? 
+    	//
+    	if (!isTokenExpired(token)) {
+    		//valid token
+    		return true;
+    	} else {
+    		//invalid token
+    		return false;
+    	}
+    		
+    }
+    
+    
+    /**
+     * Check if a token is expired
+     * @param token
+     * @return
+     */
+    public static boolean isTokenExpired(String token) {
+    	Claims claims = getClaims(token);
+    	return claims.getExpiration().before(new Date());
+    }
+    
+    
+    /**
+     * Gets the username from a token
+     * @param token
+     * @return
+     */
+    public static String getUsernameFromToken(String token) {
+    	Claims claims = getClaims(token);
+    	return (String) claims.getSubject();
     }
     
     

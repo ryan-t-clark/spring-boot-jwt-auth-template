@@ -11,11 +11,13 @@ import java.util.Enumeration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.auth.annotations.AdminOnly;
+import com.auth.config.jwt.JWTUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -44,15 +46,31 @@ public class AuthInterceptor implements HandlerInterceptor {
             
             //check if the route has the AdminOnly annotation
             if (method.isAnnotationPresent(AdminOnly.class)) {
+            	            
+    			String authHeader = request.getHeader("Authorization");
+    			String token = null;
+    			String username = null;
+    			String role = null;
+    			
+    			//extract the role from 
+    			if (authHeader != null && authHeader.startsWith("Bearer ")) {
+    				token = authHeader.substring(7);
+    				username = JWTUtil.getUsernameFromToken(token);
+    				role = JWTUtil.getRoleFromToken(token);
+    			}
+    			
+    			//check if the user is an admin
+    			if (!role.equals("ROLE_ADMIN")) {
+    				LOG.warn("WARNING: User [" + username + "] was blocked trying to access an admin route.");
+
+    				//send unauthorized response message
+    				response.getWriter().write("Unauthorized request");
+    				response.setStatus(403);
+    				return false;
+    			}
             	
-            	LOG.info("user is trying to access an admin only route");
-            
             }
             
-        	Enumeration<String> headers = request.getHeaderNames();
-        	while (headers.hasMoreElements()) {
-        		LOG.info(headers.nextElement());
-        	}
             
         }
 		

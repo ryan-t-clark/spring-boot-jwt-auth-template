@@ -20,8 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.auth.config.JWTUtil;
-
+import com.auth.config.jwt.JWTUtil;
 import com.auth.model.LoginRequest;
 import com.auth.model.LoginResponse;
 import com.auth.model.User;

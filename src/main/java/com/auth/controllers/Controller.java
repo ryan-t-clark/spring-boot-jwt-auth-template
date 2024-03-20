@@ -17,7 +17,6 @@ public class Controller {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DemoApplication.class);
 	
-	@AdminOnly
 	@GetMapping("/")
 	public ResponseEntity<String> index() {
 		LOG.info("Route '/' reached");
@@ -31,7 +30,7 @@ public class Controller {
 		return new ResponseEntity<>("Accessible by users and admins ONLY", HttpStatus.OK);
 	}
 	
-	
+	@AdminOnly
 	@GetMapping("/admin")
 	public ResponseEntity<String> adminProtected() {
 		LOG.info("Route '/admin' reached");
