@@ -11,6 +11,7 @@ import java.util.Enumeration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
@@ -26,6 +27,9 @@ import jakarta.servlet.http.HttpServletResponse;
 public class AuthInterceptor implements HandlerInterceptor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AuthInterceptor.class);
+	
+	@Autowired
+	private JWTUtil jwtUtil;
 	
 	@Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception { 
@@ -55,8 +59,8 @@ public class AuthInterceptor implements HandlerInterceptor {
     			//extract the role from 
     			if (authHeader != null && authHeader.startsWith("Bearer ")) {
     				token = authHeader.substring(7);
-    				username = JWTUtil.getUsernameFromToken(token);
-    				role = JWTUtil.getRoleFromToken(token);
+    				username = jwtUtil.getUsernameFromToken(token);
+    				role = jwtUtil.getRoleFromToken(token);
     			}
     			
     			//check if the user is an admin

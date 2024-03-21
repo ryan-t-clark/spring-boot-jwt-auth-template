@@ -1,5 +1,7 @@
 package com.auth.repo;
 
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -7,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.auth.model.LoginRequest;
+import com.auth.model.SignupRequest;
 import com.auth.model.User;
 
 public class UserRepo {
@@ -29,20 +32,26 @@ public class UserRepo {
 	 * @param user
 	 * @return
 	 */
-	public ResponseEntity<?> createUser(User user) {
+	public ResponseEntity<?> createUser(SignupRequest signupRequest) {
 		
-		LOG.info("Creating user [" + user.getUsername() + "]");
+		LOG.info("Creating user [" + signupRequest.getUsername() + "]");
 		
 		// hash the password
-        String hashedPassword = new BCryptPasswordEncoder().encode(user.getPassword());
+        String hashedPassword = new BCryptPasswordEncoder().encode(signupRequest.getPassword());
 		
+        User newUser = new User(
+        	UUID.randomUUID().toString(),
+        	signupRequest.getUsername(),
+        	hashedPassword,
+        	"ROLE_USER"
+        );
+        		
         //
         // database insertion logic goes here -- delete before use
         //
-        LOG.info("Username: " + user.getUsername());
-        LOG.info("Password: " + hashedPassword);
         
-        return new ResponseEntity<String>("Success", HttpStatus.OK);
+        // just for testing -- wouldn't want to return this data to the user
+        return new ResponseEntity<User>(newUser, HttpStatus.OK);
 	}
 	
 	

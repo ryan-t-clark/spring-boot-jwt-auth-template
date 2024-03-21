@@ -9,6 +9,8 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
@@ -22,25 +24,24 @@ public class JWTUtil {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(JWTUtil.class);
 	
-	private static final String SECRET = "your-secret-key";
+	@Value("${jwt.secret}")
+	private String SECRET_KEY;
     
-	private static final int ONE_WEEK = (24*7)*60*60 * 1000;
-	private static final int TWO_WEEKS = 2 * ONE_WEEK;
-    
-	public static final int EXPIRATION_TIME = TWO_WEEKS; // 10 days
+	@Value("${jwt.expiration}")
+	public int EXPIRATION_TIME;
 	
     /**
      * Generates a new JWT token containing the username
      * @param username
      * @return
      */
-    public static String generateToken(Map<String, Object> claims, String subject) {
+    public String generateToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
         	.setClaims(claims)
             .setSubject(subject)
             .setIssuedAt(new Date(System.currentTimeMillis()))
             .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-            .signWith(SignatureAlgorithm.HS512, SECRET)
+            .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
             .compact();
     }
         
@@ -50,11 +51,11 @@ public class JWTUtil {
      * @param token
      * @return
      */
-    public static Claims getClaims(String token) throws SignatureException, ExpiredJwtException {
+    public Claims getClaims(String token) throws SignatureException, ExpiredJwtException {
     	//this call verifies the signature of the token based on the secret key
     	//tampered with tokens would be detected here
     	Claims claims = Jwts.parser()
-    			.setSigningKey(SECRET)
+    			.setSigningKey(SECRET_KEY)
     			.parseClaimsJws(token)
     			.getBody();
     	return claims;
@@ -66,20 +67,9 @@ public class JWTUtil {
      * @param token
      * @return
      */
-    public static boolean validateToken(String token) {
+    public boolean validateToken(String token, UserDetails userDetails) throws SignatureException, ExpiredJwtException {
     	final String username = getUsernameFromToken(token); 
-    	
-    	//
-    	// TODO -- also need to do verification that this username is valid? 
-    	//
-    	if (!isTokenExpired(token)) {
-    		//valid token
-    		return true;
-    	} else {
-    		//invalid token
-    		return false;
-    	}
-    		
+    	return !isTokenExpired(token) && username.equals(userDetails.getUsername()); 
     }
     
     
@@ -88,7 +78,7 @@ public class JWTUtil {
      * @param token
      * @return
      */
-    public static boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) throws SignatureException, ExpiredJwtException{
     	Claims claims = getClaims(token);
     	return claims.getExpiration().before(new Date());
     }
@@ -99,7 +89,7 @@ public class JWTUtil {
      * @param token
      * @return
      */
-    public static String getUsernameFromToken(String token) {
+    public String getUsernameFromToken(String token) throws SignatureException, ExpiredJwtException {
     	Claims claims = getClaims(token);
     	return (String) claims.getSubject();
     }
@@ -110,7 +100,7 @@ public class JWTUtil {
      * @param token
      * @return
      */
-    public static String getIdFromToken(String token) {
+    public String getIdFromToken(String token) throws SignatureException, ExpiredJwtException {
     	Claims claims = getClaims(token);
     	return (String) claims.get("id");
     }
@@ -121,7 +111,7 @@ public class JWTUtil {
      * @param token
      * @return
      */
-    public static String getRoleFromToken(String token) {
+    public String getRoleFromToken(String token) throws SignatureException, ExpiredJwtException {
     	Claims claims = getClaims(token);
     	return (String) claims.get("role");
     }

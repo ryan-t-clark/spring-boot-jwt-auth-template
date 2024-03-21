@@ -13,6 +13,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.auth.config.jwt.JWTUtil;
 import com.auth.model.LoginRequest;
 import com.auth.model.LoginResponse;
+import com.auth.model.SignupRequest;
 import com.auth.model.User;
 
 import com.auth.repo.UserRepo;
@@ -34,19 +36,23 @@ public class AuthController {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(AuthController.class);
 	
+	@Autowired
+	private JWTUtil jwtUtil;
+	
+	
 	@PostMapping("/signup")
-	public ResponseEntity<?> signup(@RequestBody User user) {
+	public ResponseEntity<?> signup(@RequestBody SignupRequest signupRequest) {
 		
 		LOG.info("Route '/signup' reached");
 		
 		//validate input
-		if (user.getUsername() == null || user.getPassword() == null) {
+		if (signupRequest.getUsername() == null || signupRequest.getPassword() == null) {
 			return new ResponseEntity<String>("Error: must provide username and password", HttpStatus.BAD_REQUEST);
 		}
 		
 		try {
 			//create a user
-			return UserRepo.instance().createUser(user);
+			return UserRepo.instance().createUser(signupRequest);
 		} catch (Exception e) {
 			return new ResponseEntity<String>("Something went wrong. Try again.", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -83,11 +89,10 @@ public class AuthController {
     		claims.put("id", 	user.getId());
     		claims.put("role", 	user.getRole());
     		
-    		
     		//generate the token
-    		final String token = JWTUtil.generateToken(claims, request.getUsername());
+    		final String token = jwtUtil.generateToken(claims, request.getUsername());
     		
-    		LoginResponse response = new LoginResponse(token, Integer.toString(JWTUtil.EXPIRATION_TIME));
+    		LoginResponse response = new LoginResponse(token, Integer.toString(jwtUtil.EXPIRATION_TIME));
     		
     		LOG.info("Successful login for user [" + request.getUsername() + "]");
     		

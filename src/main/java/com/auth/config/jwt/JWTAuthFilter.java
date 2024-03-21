@@ -6,6 +6,9 @@ package com.auth.config.jwt;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +19,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,12 +29,15 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JWTAuthFilter extends OncePerRequestFilter {
 
-	private final JWTUserDetailsService userDetailsService;
-	private final ObjectMapper objectMapper;
+	private static final Logger LOG = LoggerFactory.getLogger(JWTAuthFilter.class);
 	
-	public JWTAuthFilter(JWTUserDetailsService userDetailsService, ObjectMapper objectMapper) {
+	@Autowired
+	private JWTUtil jwtUtil;
+	
+	private final JWTUserDetailsService userDetailsService;
+	
+	public JWTAuthFilter(JWTUserDetailsService userDetailsService) {
 		this.userDetailsService = userDetailsService;
-		this.objectMapper = objectMapper;
 	}
 	
 	@Override
@@ -45,7 +53,21 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 			
 			if (authHeader != null && authHeader.startsWith("Bearer ")) {
 				token = authHeader.substring(7);
-				username = JWTUtil.getUsernameFromToken(token);
+				
+				try {
+					username = jwtUtil.getUsernameFromToken(token);
+				} catch (SignatureException e) {
+					LOG.error("Error: Bad token signature. Access denied.");
+					response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+				    response.getWriter().write("Access Denied");
+					return;
+				} catch (ExpiredJwtException e) {
+					LOG.error("Error: Token is expired.");
+					response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+				    response.getWriter().write("Access Denied");
+					return;
+				}
+				
 			}
 			
 			//if no token is present, move to next filter in the chain
@@ -61,7 +83,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 		        //
 		        // TODO -- pass user details here
 		        //
-		        if (JWTUtil.validateToken(token)) {
+		        if (jwtUtil.validateToken(token, userDetails)) {
 		          UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, null);
 		          authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 		          SecurityContextHolder.getContext().setAuthentication(authenticationToken);
